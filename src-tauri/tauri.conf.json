@@ -1,5 +1,5 @@
 {
-  "$schema": "https://schema.tauri.app/config/1",
+  "$schema": "https://tauri.app/v1/tauri.schema.json",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -12,14 +12,21 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false,
+      "fs": {
+        "readFile": true,
+        "writeFile": true,
+        "readDir": true
+      },
       "shell": {
-        "all": false,
+        "open": true
+      },
+      "dialog": {
         "open": true
       }
     },
     "windows": [
       {
+        "label": "main",
         "title": "img-optimizer",
         "width": 800,
         "height": 600
