@@ -3,16 +3,18 @@
     windows_subsystem = "windows"
 )]
 
-use tauri::{command};
+use std::process::Command;
+use tauri::Manager;
 
 #[tauri::command]
 fn convert_image(image_path: String) -> Result<String, String> {
-    let node_backend = "src-tauri/src/node-backend/convert.js";
-    let result = std::process::Command::new("node")
+    // Correct the path to the Node.js backend script
+    let node_backend = "src/node-backend/convert.cjs"; // Adjust this based on the actual location of the file
+    let result = Command::new("node")
         .arg(node_backend)
         .arg(image_path)
         .output()
-        .expect("failed to execute process");
+        .expect("Failed to execute Node.js process");
 
     if result.status.success() {
         Ok(String::from_utf8_lossy(&result.stdout).to_string())
