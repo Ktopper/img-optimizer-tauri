@@ -2,25 +2,51 @@ const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
 
-// Convert a single image to WebP
 async function convertImageToWebp(imagePath) {
   const outputImagePath = imagePath.replace(path.extname(imagePath), '.webp');
-  await sharp(imagePath)
-    .webp({ quality: 80 }) // Adjust the quality if needed
-    .toFile(outputImagePath);
-  return outputImagePath;
+  console.log(`Converting: ${imagePath} to ${outputImagePath}`);
+
+  try {
+    await sharp(imagePath)
+      .webp({ quality: 80 })
+      .toFile(outputImagePath);
+    console.log(`Successfully converted: ${outputImagePath}`);
+    return outputImagePath;
+  } catch (error) {
+    console.error(`Failed to convert: ${imagePath}`, error);
+    throw error;
+  }
 }
 
-// Convert all images in a folder to WebP
 async function convertFolderToWebp(folderPath) {
   const files = fs.readdirSync(folderPath);
   const imageFiles = files.filter(file => /\.(jpg|jpeg|png)$/i.test(file));
 
+  const convertedFiles = [];
   for (const file of imageFiles) {
-    await convertImageToWebp(path.join(folderPath, file));
+    const convertedFile = await convertImageToWebp(path.join(folderPath, file));
+    convertedFiles.push(convertedFile);
   }
-  return 'All images converted to WebP';
+  return `Converted ${convertedFiles.length} images to WebP`;
 }
 
-// Export these functions so they can be called by the frontend
-module.exports = { convertImageToWebp, convertFolderToWebp };
+async function main() {
+  const args = process.argv.slice(2);
+  if (args[0] === '--image') {
+    const imagePath = args[1];
+    const result = await convertImageToWebp(imagePath);
+    console.log(result);
+  } else if (args[0] === '--folder') {
+    const folderPath = args[1];
+    const result = await convertFolderToWebp(folderPath);
+    console.log(result);
+  } else {
+    console.error('Invalid arguments. Use --image <path> or --folder <path>');
+    process.exit(1);
+  }
+}
+
+main().catch(error => {
+  console.error(error);
+  process.exit(1);
+});
