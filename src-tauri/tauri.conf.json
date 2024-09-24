@@ -1,5 +1,5 @@
 {
-  "$schema": "https://tauri.app/v1/tauri.schema.json",
+  "$schema": "https://tauri.app/v1/schema.json",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",

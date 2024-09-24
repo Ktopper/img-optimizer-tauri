@@ -4,7 +4,6 @@
 )]
 
 use std::process::Command;
-use tauri::Manager;
 
 #[tauri::command]
 fn convert_image(image_path: String) -> Result<String, String> {
