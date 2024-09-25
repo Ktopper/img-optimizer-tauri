@@ -7,12 +7,13 @@ use std::process::Command;
 
 
 #[tauri::command]
-fn convert_image(image_path: String) -> Result<String, String> {
+fn convert_image(image_path: String, conversion_type: String) -> Result<String, String> {
     let node_backend = "src/node-backend/convert.cjs";
     let output = Command::new("node")
         .arg(node_backend)
         .arg("--image")
         .arg(&image_path)
+        .arg(&conversion_type)
         .output()
         .map_err(|e| e.to_string())?;
 
