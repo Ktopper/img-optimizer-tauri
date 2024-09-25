@@ -11,7 +11,7 @@ async function convertImageToWebp(imagePath) {
       .webp({ quality: 80 })
       .toFile(outputImagePath);
     console.log(`Successfully converted: ${outputImagePath}`);
-    return outputImagePath;
+    return `Output: ${outputImagePath}`;
   } catch (error) {
     console.error(`Failed to convert: ${imagePath}`, error);
     throw error;
@@ -40,7 +40,7 @@ async function convertToSquare700(imagePath) {
       .webp({ quality: 80 })
       .toFile(outputImagePath);
     console.log(`Successfully converted: ${outputImagePath}`);
-    return outputImagePath;
+    return `Output: ${outputImagePath}`;
   } catch (error) {
     console.error(`Failed to convert: ${imagePath}`, error);
     throw error;
@@ -57,7 +57,40 @@ async function convertToWidth1600(imagePath) {
       .webp({ quality: 80 })
       .toFile(outputImagePath);
     console.log(`Successfully converted: ${outputImagePath}`);
-    return outputImagePath;
+    return `Output: ${outputImagePath}`;
+  } catch (error) {
+    console.error(`Failed to convert: ${imagePath}`, error);
+    throw error;
+  }
+}
+
+async function convertToIco(imagePath) {
+  const outputImagePath = imagePath.replace(path.extname(imagePath), '.ico');
+  console.log(`Converting to ICO: ${imagePath} to ${outputImagePath}`);
+
+  try {
+    await sharp(imagePath)
+      .resize(256, 256)
+      .toFile(outputImagePath);
+    console.log(`Successfully converted: ${outputImagePath}`);
+    return `Output: ${outputImagePath}`;
+  } catch (error) {
+    console.error(`Failed to convert: ${imagePath}`, error);
+    throw error;
+  }
+}
+
+async function convertTo100x100Png(imagePath) {
+  const outputImagePath = imagePath.replace(path.extname(imagePath), '-100x100.png');
+  console.log(`Converting to 100x100 PNG: ${imagePath} to ${outputImagePath}`);
+
+  try {
+    await sharp(imagePath)
+      .resize(100, 100, { fit: 'cover', position: 'center' })
+      .png()
+      .toFile(outputImagePath);
+    console.log(`Successfully converted: ${outputImagePath}`);
+    return `Output: ${outputImagePath}`;
   } catch (error) {
     console.error(`Failed to convert: ${imagePath}`, error);
     throw error;
@@ -79,6 +112,12 @@ async function main() {
         break;
       case 'width1600':
         result = await convertToWidth1600(imagePath);
+        break;
+      case 'ico':
+        result = await convertToIco(imagePath);
+        break;
+      case 'png100':
+        result = await convertTo100x100Png(imagePath);
         break;
       default:
         throw new Error('Invalid conversion type');

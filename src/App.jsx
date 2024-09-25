@@ -1,6 +1,7 @@
 import React from 'react';
 import { invoke } from '@tauri-apps/api/tauri';
 import { open } from '@tauri-apps/api/dialog';
+import './App.css';
 
 function App() {
   const [status, setStatus] = React.useState('');
@@ -26,11 +27,15 @@ function App() {
   return (
     <div className="App">
       <h1>Image Optimizer</h1>
-      <button onClick={() => handleConversion('image', 'webp')}>Convert Single Image to WebP</button>
-      <button onClick={() => handleConversion('image', 'square700')}>Convert to 700px Square</button>
-      <button onClick={() => handleConversion('image', 'width1600')}>Convert to 1600px Width</button>
-      <button onClick={() => handleConversion('folder', 'webp')}>Convert Folder to WebP</button>
-      <p>{status}</p>
+      <div className="button-container">
+        <button onClick={() => handleConversion('image', 'webp')}>Convert to WebP</button>
+        <button onClick={() => handleConversion('image', 'square700')}>700px Square</button>
+        <button onClick={() => handleConversion('image', 'width1600')}>1600px Width</button>
+        <button onClick={() => handleConversion('image', 'ico')}>Convert to ICO</button>
+        <button onClick={() => handleConversion('image', 'png100')}>100x100 PNG</button>
+        <button onClick={() => handleConversion('folder', 'webp')}>Convert Folder</button>
+      </div>
+      <div className="status">{status}</div>
     </div>
   );
 }
