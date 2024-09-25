@@ -4,11 +4,14 @@
 )]
 
 use std::process::Command;
-
+use tauri::Manager;
 
 #[tauri::command]
-fn convert_image(image_path: String, conversion_type: String) -> Result<String, String> {
-    let node_backend = "src/node-backend/convert.cjs";
+fn convert_image(image_path: String, conversion_type: String, app_handle: tauri::AppHandle) -> Result<String, String> {
+    let resource_path = app_handle.path_resolver().resolve_resource("node-backend/convert.cjs")
+        .expect("failed to resolve resource");
+    let node_backend = resource_path.to_str().unwrap();
+
     let output = Command::new("node")
         .arg(node_backend)
         .arg("--image")
