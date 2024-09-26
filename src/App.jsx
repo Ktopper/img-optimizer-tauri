@@ -33,6 +33,7 @@ function App() {
         <button onClick={() => handleConversion('image', 'width1600')}>1600px Width</button>
         <button onClick={() => handleConversion('image', 'ico')}>Convert to ICO</button>
         <button onClick={() => handleConversion('image', 'png100')}>100x100 PNG</button>
+        <button onClick={() => handleConversion('image', 'grayscale')}>Convert to Gray-Scale</button>
         <button onClick={() => handleConversion('folder', 'webp')}>Convert Folder</button>
       </div>
       <div className="status">{status}</div>

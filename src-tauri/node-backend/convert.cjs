@@ -97,6 +97,22 @@ async function convertTo100x100Png(imagePath) {
   }
 }
 
+async function convertToGrayScale(imagePath) {
+  const outputImagePath = imagePath.replace(path.extname(imagePath), '-grayscale' + path.extname(imagePath));
+  console.log(`Converting to gray-scale: ${imagePath} to ${outputImagePath}`);
+
+  try {
+    await sharp(imagePath)
+      .grayscale()
+      .toFile(outputImagePath);
+    console.log(`Successfully converted: ${outputImagePath}`);
+    return `Output: ${outputImagePath}`;
+  } catch (error) {
+    console.error(`Failed to convert: ${imagePath}`, error);
+    throw error;
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   if (args[0] === '--image') {
@@ -118,6 +134,9 @@ async function main() {
         break;
       case 'png100':
         result = await convertTo100x100Png(imagePath);
+        break;
+      case 'grayscale':
+        result = await convertToGrayScale(imagePath);
         break;
       default:
         throw new Error('Invalid conversion type');
