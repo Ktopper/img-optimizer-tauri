@@ -103,6 +103,7 @@ async function convertToGrayScale(imagePath) {
 
   try {
     await sharp(imagePath)
+    .modulate({ brightness: 1.2 }) 
       .grayscale()
       .toFile(outputImagePath);
     console.log(`Successfully converted: ${outputImagePath}`);
