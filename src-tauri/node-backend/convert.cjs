@@ -114,6 +114,35 @@ async function convertToGrayScale(imagePath) {
   }
 }
 
+async function overlayImage(baseImagePath, overlayImagePath) {
+  const outputImagePath = baseImagePath.replace(path.extname(baseImagePath), '-overlay.png');
+  console.log(`Overlaying: ${overlayImagePath} onto ${baseImagePath}`);
+
+  try {
+    const baseImage = sharp(baseImagePath);
+    const overlayImage = await sharp(overlayImagePath).toBuffer();
+
+    const { width: baseWidth, height: baseHeight } = await baseImage.metadata();
+    const { width: overlayWidth, height: overlayHeight } = await sharp(overlayImagePath).metadata();
+
+    const options = {
+      input: overlayImage,
+      tile: overlayWidth < baseWidth || overlayHeight < baseHeight,
+      gravity: 'center',
+    };
+
+    await baseImage
+      .composite([options])
+      .toFile(outputImagePath);
+
+    console.log(`Successfully overlaid: ${outputImagePath}`);
+    return `Output: ${outputImagePath}`;
+  } catch (error) {
+    console.error(`Failed to overlay: ${baseImagePath}`, error);
+    throw error;
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   if (args[0] === '--image') {
@@ -138,6 +167,9 @@ async function main() {
         break;
       case 'grayscale':
         result = await convertToGrayScale(imagePath);
+        break;
+      case 'overlay':
+        result = await overlayImage(imagePath, args[3]); // Assuming args[3] is the overlay image path
         break;
       default:
         throw new Error('Invalid conversion type');
