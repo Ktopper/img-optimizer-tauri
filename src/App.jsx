@@ -26,10 +26,10 @@ function App() {
     }
   };
 
-  const handleOverlay = async (baseImage, overlayImage) => {
+  const handleOverlay = async (baseImage, overlayImage, overlayOption) => {
     try {
       setStatus('Overlaying...');
-      const response = await invoke('overlay_image', { baseImagePath: baseImage, overlayImagePath: overlayImage });
+      const response = await invoke('overlay_image', { baseImagePath: baseImage, overlayImagePath: overlayImage, overlayOption });
       setStatus(response);
     } catch (error) {
       setStatus(`Error: ${error}`);

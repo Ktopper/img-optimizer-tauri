@@ -114,9 +114,9 @@ async function convertToGrayScale(imagePath) {
   }
 }
 
-async function overlayImage(baseImagePath, overlayImagePath) {
+async function overlayImage(baseImagePath, overlayImagePath, overlayOption) {
   const outputImagePath = baseImagePath.replace(path.extname(baseImagePath), '-overlay.png');
-  console.log(`Overlaying: ${overlayImagePath} onto ${baseImagePath}`);
+  console.log(`Overlaying: ${overlayImagePath} onto ${baseImagePath} with option: ${overlayOption}`);
 
   try {
     const baseImage = sharp(baseImagePath);
@@ -125,11 +125,27 @@ async function overlayImage(baseImagePath, overlayImagePath) {
     const { width: baseWidth, height: baseHeight } = await baseImage.metadata();
     const { width: overlayWidth, height: overlayHeight } = await sharp(overlayImagePath).metadata();
 
-    const options = {
-      input: overlayImage,
-      tile: overlayWidth < baseWidth || overlayHeight < baseHeight,
-      gravity: 'center',
-    };
+    let options = { input: overlayImage };
+
+    switch (overlayOption) {
+      case 'center':
+        options.gravity = 'center';
+        break;
+      case 'left':
+        options.gravity = 'west';
+        break;
+      case 'right':
+        options.gravity = 'east';
+        break;
+      case 'tile':
+        options.tile = true;
+        break;
+      case 'stretch':
+        options = { ...options, width: baseWidth, height: baseHeight };
+        break;
+      default:
+        options.gravity = 'center';
+    }
 
     await baseImage
       .composite([options])
@@ -169,7 +185,7 @@ async function main() {
         result = await convertToGrayScale(imagePath);
         break;
       case 'overlay':
-        result = await overlayImage(imagePath, args[3]); // Assuming args[3] is the overlay image path
+        result = await overlayImage(imagePath, args[3], args[4]); // Assuming args[4] is the overlay option
         break;
       default:
         throw new Error('Invalid conversion type');

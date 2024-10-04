@@ -28,7 +28,7 @@ fn convert_image(image_path: String, conversion_type: String, app_handle: tauri:
 }
 
 #[tauri::command]
-fn overlay_image(base_image_path: String, overlay_image_path: String, app_handle: tauri::AppHandle) -> Result<String, String> {
+fn overlay_image(base_image_path: String, overlay_image_path: String, overlay_option: String, app_handle: tauri::AppHandle) -> Result<String, String> {
     let resource_path = app_handle.path_resolver().resolve_resource("node-backend/convert.cjs")
         .expect("failed to resolve resource");
     let node_backend = resource_path.to_str().unwrap();
@@ -39,6 +39,7 @@ fn overlay_image(base_image_path: String, overlay_image_path: String, app_handle
         .arg(&base_image_path)
         .arg("overlay")
         .arg(&overlay_image_path)
+        .arg(&overlay_option)
         .output()
         .map_err(|e| e.to_string())?;
 
