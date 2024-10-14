@@ -159,6 +159,27 @@ async function overlayImage(baseImagePath, overlayImagePath, overlayOption) {
   }
 }
 
+async function resizeToSpecificWidth(imagePath, targetWidth) {
+  const ext = path.extname(imagePath);
+  const outputImagePath = imagePath.replace(ext, `-${targetWidth}w${ext}`);
+  console.log(`Resizing to ${targetWidth}px width: ${imagePath} to ${outputImagePath}`);
+
+  try {
+    const width = parseInt(targetWidth, 10);
+    if (isNaN(width) || width <= 0) {
+      throw new Error('Invalid target width');
+    }
+    await sharp(imagePath)
+      .resize(width, null, { fit: 'inside' })
+      .toFile(outputImagePath);
+    console.log(`Successfully resized: ${outputImagePath}`);
+    return `Output: ${outputImagePath}`;
+  } catch (error) {
+    console.error(`Failed to resize: ${imagePath}`, error);
+    throw error;
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   if (args[0] === '--image') {
@@ -186,6 +207,13 @@ async function main() {
         break;
       case 'overlay':
         result = await overlayImage(imagePath, args[3], args[4]); // Assuming args[4] is the overlay option
+        break;
+      case 'resize':
+        const width = parseInt(args[3], 10);
+        if (isNaN(width) || width <= 0) {
+          throw new Error('Invalid target width');
+        }
+        result = await resizeToSpecificWidth(imagePath, width);
         break;
       default:
         throw new Error('Invalid conversion type');

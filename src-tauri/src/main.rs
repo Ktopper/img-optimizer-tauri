@@ -7,18 +7,22 @@ use std::process::Command;
 use tauri::Manager;
 
 #[tauri::command]
-fn convert_image(image_path: String, conversion_type: String, app_handle: tauri::AppHandle) -> Result<String, String> {
+fn convert_image(image_path: String, conversion_type: String, target_width: Option<String>, app_handle: tauri::AppHandle) -> Result<String, String> {
     let resource_path = app_handle.path_resolver().resolve_resource("node-backend/convert.cjs")
         .expect("failed to resolve resource");
     let node_backend = resource_path.to_str().unwrap();
 
-    let output = Command::new("node")
-        .arg(node_backend)
+    let mut command = Command::new("node");
+    command.arg(node_backend)
         .arg("--image")
         .arg(&image_path)
-        .arg(&conversion_type)
-        .output()
-        .map_err(|e| e.to_string())?;
+        .arg(&conversion_type);
+
+    if let Some(width) = target_width {
+        command.arg(width);
+    }
+
+    let output = command.output().map_err(|e| e.to_string())?;
 
     if output.status.success() {
         Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())

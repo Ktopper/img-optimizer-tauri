@@ -7,6 +7,7 @@ import ImageOverlayModal from './ImageOverlayModal';
 function App() {
   const [status, setStatus] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [targetWidth, setTargetWidth] = useState(800);
 
   const handleConversion = async (type, conversionType) => {
     try {
@@ -18,7 +19,11 @@ function App() {
 
       if (selected) {
         setStatus('Converting...');
-        const response = await invoke('convert_image', { imagePath: selected, conversionType });
+        const response = await invoke('convert_image', { 
+          imagePath: selected, 
+          conversionType,
+          targetWidth: conversionType === 'resize' ? targetWidth.toString() : undefined
+        });
         setStatus(response);
       }
     } catch (error) {
@@ -48,6 +53,17 @@ function App() {
         <button onClick={() => handleConversion('image', 'png100')}>100x100 PNG</button>
         <button onClick={() => handleConversion('image', 'grayscale')}>Convert to Gray-Scale</button>
         <button onClick={() => handleConversion('folder', 'webp')}>Convert Folder</button>
+        <div className="resize-container">
+          <input
+            type="number"
+            value={targetWidth}
+            onChange={(e) => setTargetWidth(e.target.value)}
+            min="1"
+          />
+          <button onClick={() => handleConversion('image', 'resize')}>
+            Resize to {targetWidth}px Width
+          </button>
+        </div>
       </div>
       {showModal && <ImageOverlayModal onClose={() => setShowModal(false)} onOverlay={handleOverlay} />}
       <div className="status">{status}</div>
