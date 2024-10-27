@@ -8,6 +8,7 @@ function App() {
   const [status, setStatus] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [targetWidth, setTargetWidth] = useState(800);
+  const [aspectRatio, setAspectRatio] = useState('16:9');
 
   const handleConversion = async (type, conversionType) => {
     try {
@@ -41,6 +42,27 @@ function App() {
     }
   };
 
+  const handleAspectRatioConversion = async () => {
+    try {
+      const selected = await open({
+        multiple: false,
+        filters: [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png'] }],
+      });
+
+      if (selected) {
+        setStatus('Converting...');
+        const response = await invoke('convert_image', { 
+          imagePath: selected, 
+          conversionType: 'aspect-ratio',
+          aspectRatio: aspectRatio
+        });
+        setStatus(response);
+      }
+    } catch (error) {
+      setStatus(`Error: ${error}`);
+    }
+  };
+
   return (
     <div className="App">
       <h1>Image Optimizer</h1>
@@ -63,6 +85,18 @@ function App() {
           <button onClick={() => handleConversion('image', 'resize')}>
             Resize to {targetWidth}px Width
           </button>
+        </div>
+        <div className="aspect-ratio-container">
+          <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)}>
+            <option value="16:9">16:9</option>
+            <option value="3:2">3:2</option>
+            <option value="2:1">2:1</option>
+            <option value="1:2">1:2</option>
+            <option value="3:4">3:4</option>
+            <option value="4:3">4:3</option>
+            <option value="5:3">5:3</option>
+          </select>
+          <button onClick={handleAspectRatioConversion}>Convert to Aspect Ratio</button>
         </div>
       </div>
       {showModal && <ImageOverlayModal onClose={() => setShowModal(false)} onOverlay={handleOverlay} />}

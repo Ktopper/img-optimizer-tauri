@@ -180,45 +180,105 @@ async function resizeToSpecificWidth(imagePath, targetWidth) {
   }
 }
 
+async function convertToAspectRatio(imagePath, aspectRatio) {
+  const [width, height] = aspectRatio.split(':').map(Number);
+  const ext = path.extname(imagePath);
+  const outputImagePath = imagePath.replace(ext, `-${width}x${height}${ext}`);
+  console.log(`Converting to ${width}:${height} aspect ratio: ${imagePath} to ${outputImagePath}`);
+
+  if (!width || !height || isNaN(width) || isNaN(height)) {
+    throw new Error(`Invalid aspect ratio: ${aspectRatio}`);
+  }
+
+  try {
+    const image = sharp(imagePath);
+    const metadata = await image.metadata();
+    const originalWidth = metadata.width;
+    const originalHeight = metadata.height;
+
+    console.log(`Original dimensions: ${originalWidth}x${originalHeight}`);
+
+    let newWidth, newHeight;
+    const targetRatio = width / height;
+    const originalRatio = originalWidth / originalHeight;
+
+    if (originalRatio > targetRatio) {
+      newHeight = originalHeight;
+      newWidth = Math.round(newHeight * targetRatio);
+    } else {
+      newWidth = originalWidth;
+      newHeight = Math.round(newWidth / targetRatio);
+    }
+
+    console.log(`New dimensions: ${newWidth}x${newHeight}`);
+
+    if (isNaN(newWidth) || isNaN(newHeight) || newWidth <= 0 || newHeight <= 0) {
+      throw new Error(`Invalid new dimensions: ${newWidth}x${newHeight}`);
+    }
+
+    await image
+      .resize(newWidth, newHeight, { fit: 'cover', position: 'center' })
+      .toFile(outputImagePath);
+
+    console.log(`Successfully converted: ${outputImagePath}`);
+    return `Output: ${outputImagePath}`;
+  } catch (error) {
+    console.error(`Failed to convert: ${imagePath}`, error);
+    throw error;
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   if (args[0] === '--image') {
     const imagePath = args[1];
     const conversionType = args[2];
     let result;
-    switch (conversionType) {
-      case 'webp':
-        result = await convertImageToWebp(imagePath);
-        break;
-      case 'square700':
-        result = await convertToSquare700(imagePath);
-        break;
-      case 'width1600':
-        result = await convertToWidth1600(imagePath);
-        break;
-      case 'ico':
-        result = await convertToIco(imagePath);
-        break;
-      case 'png100':
-        result = await convertTo100x100Png(imagePath);
-        break;
-      case 'grayscale':
-        result = await convertToGrayScale(imagePath);
-        break;
-      case 'overlay':
-        result = await overlayImage(imagePath, args[3], args[4]); // Assuming args[4] is the overlay option
-        break;
-      case 'resize':
-        const width = parseInt(args[3], 10);
-        if (isNaN(width) || width <= 0) {
-          throw new Error('Invalid target width');
-        }
-        result = await resizeToSpecificWidth(imagePath, width);
-        break;
-      default:
-        throw new Error('Invalid conversion type');
+    try {
+      switch (conversionType) {
+        case 'webp':
+          result = await convertImageToWebp(imagePath);
+          break;
+        case 'square700':
+          result = await convertToSquare700(imagePath);
+          break;
+        case 'width1600':
+          result = await convertToWidth1600(imagePath);
+          break;
+        case 'ico':
+          result = await convertToIco(imagePath);
+          break;
+        case 'png100':
+          result = await convertTo100x100Png(imagePath);
+          break;
+        case 'grayscale':
+          result = await convertToGrayScale(imagePath);
+          break;
+        case 'overlay':
+          result = await overlayImage(imagePath, args[3], args[4]); // Assuming args[4] is the overlay option
+          break;
+        case 'resize':
+          const width = parseInt(args[3], 10);
+          if (isNaN(width) || width <= 0) {
+            throw new Error('Invalid target width');
+          }
+          result = await resizeToSpecificWidth(imagePath, width);
+          break;
+        case 'aspect-ratio':
+          const aspectRatio = args[3];
+          if (!aspectRatio) {
+            throw new Error('Aspect ratio not provided');
+          }
+          result = await convertToAspectRatio(imagePath, aspectRatio);
+          break;
+        default:
+          throw new Error(`Unknown conversion type: ${conversionType}`);
+      }
+      console.log(result);
+    } catch (error) {
+      console.error(`Error: ${error.message}`);
+      process.exit(1);
     }
-    console.log(result);
   } else if (args[0] === '--folder') {
     const folderPath = args[1];
     const result = await convertFolderToWebp(folderPath);

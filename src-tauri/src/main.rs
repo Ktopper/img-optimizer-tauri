@@ -7,7 +7,7 @@ use std::process::Command;
 use tauri::Manager;
 
 #[tauri::command]
-fn convert_image(image_path: String, conversion_type: String, target_width: Option<String>, app_handle: tauri::AppHandle) -> Result<String, String> {
+fn convert_image(image_path: String, conversion_type: String, target_width: Option<String>, aspect_ratio: Option<String>, app_handle: tauri::AppHandle) -> Result<String, String> {
     let resource_path = app_handle.path_resolver().resolve_resource("node-backend/convert.cjs")
         .expect("failed to resolve resource");
     let node_backend = resource_path.to_str().unwrap();
@@ -20,6 +20,10 @@ fn convert_image(image_path: String, conversion_type: String, target_width: Opti
 
     if let Some(width) = target_width {
         command.arg(width);
+    }
+
+    if let Some(ratio) = aspect_ratio {
+        command.arg(ratio);
     }
 
     let output = command.output().map_err(|e| e.to_string())?;

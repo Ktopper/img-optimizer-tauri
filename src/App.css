@@ -71,3 +71,16 @@ button:hover {
     grid-template-columns: 1fr;
   }
 }
+
+.aspect-ratio-container {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.aspect-ratio-container select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 5px;
+  border: 1px solid var(--primary-color);
+}
