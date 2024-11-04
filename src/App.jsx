@@ -75,6 +75,7 @@ function App() {
         <button onClick={() => handleConversion('image', 'png100')}>100x100 PNG</button>
         <button onClick={() => handleConversion('image', 'grayscale')}>Convert to Gray-Scale</button>
         <button onClick={() => handleConversion('folder', 'webp')}>Convert Folder</button>
+        <button onClick={() => handleConversion('image', 'jpg')}>Convert to JPG</button>
         <div className="resize-container">
           <input
             type="number"

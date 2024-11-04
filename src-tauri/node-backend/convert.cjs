@@ -228,6 +228,22 @@ async function convertToAspectRatio(imagePath, aspectRatio) {
   }
 }
 
+async function convertToJpg(imagePath) {
+  const outputImagePath = imagePath.replace(path.extname(imagePath), '.jpg');
+  console.log(`Converting to JPG: ${imagePath} to ${outputImagePath}`);
+
+  try {
+    await sharp(imagePath)
+      .jpeg({ quality: 85 })
+      .toFile(outputImagePath);
+    console.log(`Successfully converted: ${outputImagePath}`);
+    return `Output: ${outputImagePath}`;
+  } catch (error) {
+    console.error(`Failed to convert: ${imagePath}`, error);
+    throw error;
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   if (args[0] === '--image') {
@@ -270,6 +286,9 @@ async function main() {
             throw new Error('Aspect ratio not provided');
           }
           result = await convertToAspectRatio(imagePath, aspectRatio);
+          break;
+        case 'jpg':
+          result = await convertToJpg(imagePath);
           break;
         default:
           throw new Error(`Unknown conversion type: ${conversionType}`);
