@@ -244,6 +244,23 @@ async function convertToJpg(imagePath) {
   }
 }
 
+async function convertToSquare300(imagePath) {
+  const outputImagePath = imagePath.replace(path.extname(imagePath), '-300.webp');
+  console.log(`Converting to 300px square: ${imagePath} to ${outputImagePath}`);
+
+  try {
+    await sharp(imagePath)
+      .resize(300, 300, { fit: 'cover', position: 'center' })
+      .webp({ quality: 80 })
+      .toFile(outputImagePath);
+    console.log(`Successfully converted: ${outputImagePath}`);
+    return `Output: ${outputImagePath}`;
+  } catch (error) {
+    console.error(`Failed to convert: ${imagePath}`, error);
+    throw error;
+  }
+}
+
 async function main() {
   const args = process.argv.slice(2);
   if (args[0] === '--image') {
@@ -289,6 +306,9 @@ async function main() {
           break;
         case 'jpg':
           result = await convertToJpg(imagePath);
+          break;
+        case 'square300':
+          result = await convertToSquare300(imagePath);
           break;
         default:
           throw new Error(`Unknown conversion type: ${conversionType}`);

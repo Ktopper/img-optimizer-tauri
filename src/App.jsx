@@ -70,6 +70,7 @@ function App() {
         <button onClick={() => setShowModal(true)}>Overlay Image</button>
         <button onClick={() => handleConversion('image', 'webp')}>Convert to WebP</button>
         <button onClick={() => handleConversion('image', 'square700')}>700px Square</button>
+        <button onClick={() => handleConversion('image', 'square300')}>300px Square</button>
         <button onClick={() => handleConversion('image', 'width1600')}>1600px Width</button>
         <button onClick={() => handleConversion('image', 'ico')}>Convert to ICO</button>
         <button onClick={() => handleConversion('image', 'png100')}>100x100 PNG</button>
