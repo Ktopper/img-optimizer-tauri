@@ -76,6 +76,7 @@ button:hover {
   display: flex;
   gap: 1rem;
   align-items: center;
+  
 }
 
 .aspect-ratio-container select {
@@ -83,4 +84,9 @@ button:hover {
   font-size: 1rem;
   border-radius: 5px;
   border: 1px solid var(--primary-color);
+}
+.resize-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }

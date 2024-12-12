@@ -78,15 +78,16 @@ function App() {
         <button onClick={() => handleConversion('folder', 'webp')}>Convert Folder</button>
         <button onClick={() => handleConversion('image', 'jpg')}>Convert to JPG</button>
         <div className="resize-container">
+        <button onClick={() => handleConversion('image', 'resize')}>
+            Resize to {targetWidth}px Width
+          </button>
           <input
             type="number"
             value={targetWidth}
             onChange={(e) => setTargetWidth(e.target.value)}
             min="1"
           />
-          <button onClick={() => handleConversion('image', 'resize')}>
-            Resize to {targetWidth}px Width
-          </button>
+      
         </div>
         <div className="aspect-ratio-container">
           <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)}>
