@@ -1,29 +1,33 @@
 :root {
-  --primary-color: #3498db;
-  --secondary-color: #2ecc71;
-  --background-color: #f5f7fa;
-  --text-color: #34495e;
-  --button-hover-color: #2980b9;
+  --teal-500: #00CED1;
+  --red-500: #f91b1b;
+
+  --yellow-400: #FFD93D;
+  --purple-200: #080839;
+  --gray-100: #F0F0F0;
+  --white: #FFFFFF;
+  --gray-600: #4B5563;
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: var(--background-color);
-  color: var(--text-color);
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+  background-color: var(--gray-100);
+  color: var(--gray-600);
   margin: 0;
   padding: 0;
 }
 
 .App {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
 }
 
 h1 {
-  color: var(--primary-color);
+  color: var(--purple-200 );
   text-align: center;
   font-size: 2.5rem;
+  font-weight: bold;
   margin-bottom: 2rem;
 }
 
@@ -35,27 +39,56 @@ h1 {
 }
 
 button {
-  background-color: var(--primary-color);
+  background-color: var(--teal-500);
   color: white;
   border: none;
   padding: 0.8rem 1.2rem;
   font-size: 1rem;
-  border-radius: 5px;
+  font-weight: bold;
+  border-radius: 9999px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 button:hover {
-  background-color: var(--button-hover-color);
+  background: linear-gradient(to right, var(--red-500), var(--yellow-400));
+  transform: translateY(-1px);
 }
 
 .status {
-  background-color: white;
-  border-radius: 5px;
+  background-color: var(--white);
+  border-radius: 0.75rem;
   padding: 1rem;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   text-align: center;
   font-weight: bold;
+  border: 2px solid var(--teal-500);
+}
+
+.aspect-ratio-container {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.aspect-ratio-container select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 9999px;
+  border: 2px solid var(--teal-500);
+  background-color: var(--white);
+  color: var(--gray-600);
+  transition: all 0.3s ease;
+}
+
+.aspect-ratio-container select:hover {
+  border-color: var(--red-500);
+}
+
+.resize-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 @media (max-width: 600px) {
@@ -70,23 +103,4 @@ button:hover {
   .button-container {
     grid-template-columns: 1fr;
   }
-}
-
-.aspect-ratio-container {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  
-}
-
-.aspect-ratio-container select {
-  padding: 0.5rem;
-  font-size: 1rem;
-  border-radius: 5px;
-  border: 1px solid var(--primary-color);
-}
-.resize-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
 }
