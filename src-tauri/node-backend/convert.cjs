@@ -20,7 +20,7 @@ async function convertImageToWebp(imagePath) {
 
 async function convertFolderToWebp(folderPath) {
   const files = fs.readdirSync(folderPath);
-  const imageFiles = files.filter(file => /\.(jpg|jpeg|png)$/i.test(file));
+  const imageFiles = files.filter(file => /\.(.webp|jpg|jpeg|png)$/i.test(file));
 
   const convertedFiles = [];
   for (const file of imageFiles) {
