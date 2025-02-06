@@ -169,9 +169,44 @@ async function resizeToSpecificWidth(imagePath, targetWidth) {
     if (isNaN(width) || width <= 0) {
       throw new Error('Invalid target width');
     }
-    await sharp(imagePath)
-      .resize(width, null, { fit: 'inside' })
-      .toFile(outputImagePath);
+    
+    // Create the sharp pipeline for resizing
+    let pipeline = sharp(imagePath).resize(width, null, { fit: 'inside' });
+    
+    // If the image is in WebP format, ensure the output is properly encoded as WebP.
+    if (ext.toLowerCase() === '.webp') {
+      pipeline = pipeline.webp({ quality: 80 });
+    }
+    
+    await pipeline.toFile(outputImagePath);
+    console.log(`Successfully resized: ${outputImagePath}`);
+    return `Output: ${outputImagePath}`;
+  } catch (error) {
+    console.error(`Failed to resize: ${imagePath}`, error);
+    throw error;
+  }
+}
+
+async function resizeToSpecificHeight(imagePath, targetHeight) {
+  const ext = path.extname(imagePath);
+  const outputImagePath = imagePath.replace(ext, `-${targetHeight}h${ext}`);
+  console.log(`Resizing to ${targetHeight}px height: ${imagePath} to ${outputImagePath}`);
+
+  try {
+    const height = parseInt(targetHeight, 10);
+    if (isNaN(height) || height <= 0) {
+      throw new Error('Invalid target height');
+    }
+    
+    // Create the sharp pipeline for resizing
+    let pipeline = sharp(imagePath).resize(null, height, { fit: 'inside' });
+    
+    // If the image is in WebP format, ensure the output is properly encoded as WebP.
+    if (ext.toLowerCase() === '.webp') {
+      pipeline = pipeline.webp({ quality: 80 });
+    }
+    
+    await pipeline.toFile(outputImagePath);
     console.log(`Successfully resized: ${outputImagePath}`);
     return `Output: ${outputImagePath}`;
   } catch (error) {
@@ -296,6 +331,25 @@ async function main() {
             throw new Error('Invalid target width');
           }
           result = await resizeToSpecificWidth(imagePath, width);
+          break;
+        case 'resize-height':
+          console.log('Full args:', process.argv);
+          console.log('Sliced args:', args);
+          const heightStr = args[3];
+          console.log('Height string:', heightStr);
+          
+          if (!heightStr) {
+            throw new Error('Height parameter is missing');
+          }
+          
+          const height = parseInt(heightStr, 10);
+          console.log('Parsed height:', height);
+          
+          if (isNaN(height) || height <= 0) {
+            throw new Error(`Invalid target height: ${heightStr}`);
+          }
+          
+          result = await resizeToSpecificHeight(imagePath, height);
           break;
         case 'aspect-ratio':
           const aspectRatio = args[3];

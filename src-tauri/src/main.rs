@@ -7,7 +7,17 @@ use std::process::Command;
 use tauri::Manager;
 
 #[tauri::command]
-fn convert_image(image_path: String, conversion_type: String, target_width: Option<String>, aspect_ratio: Option<String>, app_handle: tauri::AppHandle) -> Result<String, String> {
+fn convert_image(
+    image_path: String,
+    conversion_type: String,
+    target_width: Option<String>,
+    target_height: Option<String>,
+    aspect_ratio: Option<String>,
+    app_handle: tauri::AppHandle
+) -> Result<String, String> {
+    println!("Conversion type: {}", conversion_type);
+    println!("Target height: {:?}", target_height);
+
     let resource_path = app_handle.path_resolver().resolve_resource("node-backend/convert.cjs")
         .expect("failed to resolve resource");
     let node_backend = resource_path.to_str().unwrap();
@@ -18,12 +28,28 @@ fn convert_image(image_path: String, conversion_type: String, target_width: Opti
         .arg(&image_path)
         .arg(&conversion_type);
 
-    if let Some(width) = target_width {
-        command.arg(width);
-    }
-
-    if let Some(ratio) = aspect_ratio {
-        command.arg(ratio);
+    match conversion_type.as_str() {
+        "resize" => {
+            if let Some(width) = target_width {
+                command.arg(width);
+            }
+        }
+        "resize-height" => {
+            if let Some(height) = target_height {
+                println!("Adding height argument: {}", height);
+                command.arg(height);
+            } else {
+                println!("No height value provided");
+            }
+        }
+        _ => {
+            if let Some(width) = target_width {
+                command.arg(width);
+            }
+            if let Some(ratio) = aspect_ratio {
+                command.arg(ratio);
+            }
+        }
     }
 
     let output = command.output().map_err(|e| e.to_string())?;

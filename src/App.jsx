@@ -8,6 +8,7 @@ function App() {
   const [status, setStatus] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [targetWidth, setTargetWidth] = useState(800);
+  const [targetHeight, setTargetHeight] = useState(800);
   const [aspectRatio, setAspectRatio] = useState('16:9');
 
   const handleConversion = async (type, conversionType) => {
@@ -15,18 +16,37 @@ function App() {
       const selected = await open({
         multiple: false,
         directory: type === 'folder',
-        filters: type === 'image' ? [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png'] }] : undefined,
+        filters: type === 'image'
+          ? [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'webp'] }]
+          : undefined,
       });
 
-      if (selected) {
-        setStatus('Converting...');
-        const response = await invoke('convert_image', { 
-          imagePath: selected, 
-          conversionType,
-          targetWidth: conversionType === 'resize' ? targetWidth.toString() : undefined
-        });
-        setStatus(response);
+      if (!selected) return;
+
+      setStatus('Converting...');
+      const payload = {
+        imagePath: selected,
+        conversionType,
+        targetWidth: null,
+        targetHeight: null,
+        aspectRatio: null
+      };
+
+      if (conversionType === 'resize') {
+        payload.targetWidth = targetWidth.toString();
+      } else if (conversionType === 'resize-height') {
+        if (!targetHeight || parseInt(targetHeight, 10) <= 0) {
+          setStatus('Error: Invalid target height value');
+          return;
+        }
+        payload.targetHeight = targetHeight.toString();
+      } else if (conversionType === 'aspect-ratio') {
+        payload.aspectRatio = aspectRatio;
       }
+
+      console.log('Sending payload:', payload);
+      const response = await invoke('convert_image', payload);
+      setStatus(response);
     } catch (error) {
       setStatus(`Error: ${error}`);
     }
@@ -89,6 +109,23 @@ function App() {
           />
       
         </div>
+        <div className="resize-container">
+          <button onClick={() => {
+            console.log('Current height value:', targetHeight);
+            handleConversion('image', 'resize-height');
+          }}>
+            Resize to {targetHeight}px Height
+          </button>
+          <input
+            type="number"
+            value={targetHeight}
+            onChange={(e) => {
+              console.log('New height value:', e.target.value);
+              setTargetHeight(parseInt(e.target.value, 10));
+            }}
+            min="1"
+          />
+        </div>
         <div className="aspect-ratio-container">
           <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)}>
             <option value="16:9">16:9</option>
@@ -107,7 +144,5 @@ function App() {
     </div>
   );
 }
-
-
 
 export default App;
