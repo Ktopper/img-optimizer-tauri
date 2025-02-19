@@ -17,7 +17,7 @@ function App() {
         multiple: false,
         directory: type === 'folder',
         filters: type === 'image'
-          ? [{ name: 'Images', extensions: ['jpg', 'jpeg', 'png', 'webp'] }]
+          ? [{ name: 'Images', extensions: ['avif','jpg', 'jpeg', 'png', 'webp'] }]
           : undefined,
       });
 
