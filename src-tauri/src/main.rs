@@ -84,9 +84,26 @@ fn overlay_image(base_image_path: String, overlay_image_path: String, overlay_op
     }
 }
 
+#[tauri::command]
+fn list_files(folder_path: String) -> String {
+    let paths = std::fs::read_dir(folder_path).unwrap();
+    let mut file_list = String::new();
+    
+    for path in paths {
+        if let Ok(entry) = path {
+            if let Some(file_name) = entry.file_name().to_str() {
+                file_list.push_str(file_name);
+                file_list.push('\n');
+            }
+        }
+    }
+    
+    file_list
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![convert_image, overlay_image])
+        .invoke_handler(tauri::generate_handler![convert_image, overlay_image, list_files])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

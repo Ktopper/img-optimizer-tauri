@@ -10,6 +10,7 @@ function App() {
   const [targetWidth, setTargetWidth] = useState(800);
   const [targetHeight, setTargetHeight] = useState(800);
   const [aspectRatio, setAspectRatio] = useState('16:9');
+  const [fileList, setFileList] = useState('');
 
   const handleConversion = async (type, conversionType) => {
     try {
@@ -83,10 +84,30 @@ function App() {
     }
   };
 
+  const handleListFiles = async () => {
+    try {
+      const selected = await open({
+        multiple: false,
+        directory: true,
+      });
+
+      if (!selected) return;
+
+      setStatus('Listing files...');
+      const response = await invoke('list_files', { folderPath: selected });
+      setFileList(response);
+      setStatus('Files listed successfully');
+    } catch (error) {
+      setStatus(`Error: ${error}`);
+      setFileList('');
+    }
+  };
+
   return (
     <div className="App">
       <h1>Image Optimizer</h1>
       <div className="button-container">
+        <button onClick={handleListFiles}>List Files in Folder</button>
         <button onClick={() => setShowModal(true)}>Overlay Image</button>
         <button onClick={() => handleConversion('image', 'webp')}>Convert to WebP</button>
         <button onClick={() => handleConversion('image', 'square700')}>700px Square</button>
@@ -141,6 +162,21 @@ function App() {
       </div>
       {showModal && <ImageOverlayModal onClose={() => setShowModal(false)} onOverlay={handleOverlay} />}
       <div className="status">{status}</div>
+      {fileList && (
+        <div className="file-list">
+          <textarea
+            readOnly
+            value={fileList}
+            onClick={(e) => e.target.select()}
+            style={{
+              width: '100%',
+              minHeight: '200px',
+              marginTop: '20px',
+              padding: '10px',
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
