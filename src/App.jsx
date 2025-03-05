@@ -11,6 +11,7 @@ function App() {
   const [targetHeight, setTargetHeight] = useState(800);
   const [aspectRatio, setAspectRatio] = useState('16:9');
   const [fileList, setFileList] = useState('');
+  const [markdownText, setMarkdownText] = useState('');
 
   const handleConversion = async (type, conversionType) => {
     try {
@@ -103,6 +104,25 @@ function App() {
     }
   };
 
+  const handleMarkdownToText = async () => {
+    try {
+      const selected = await open({
+        multiple: false,
+        filters: [{ name: 'Markdown', extensions: ['md', 'markdown'] }],
+      });
+
+      if (!selected) return;
+
+      setStatus('Converting markdown...');
+      const response = await invoke('convert_markdown', { markdownPath: selected });
+      setMarkdownText(response);
+      setStatus('Markdown converted successfully');
+    } catch (error) {
+      setStatus(`Error: ${error}`);
+      setMarkdownText('');
+    }
+  };
+
   return (
     <div className="App">
       <h1>Image Optimizer</h1>
@@ -118,7 +138,6 @@ function App() {
         <button onClick={() => handleConversion('image', 'grayscale')}>Convert to Gray-Scale</button>
         <button onClick={() => handleConversion('folder', 'webp')}>Convert Folder</button>
         <button onClick={() => handleConversion('image', 'jpg')}>Convert to JPG</button>
-        <div className="resize-container">
         <button onClick={() => handleConversion('image', 'resize')}>
             Resize to {targetWidth}px Width
           </button>
@@ -129,9 +148,7 @@ function App() {
             min="1"
           />
       
-        </div>
-        <div className="resize-container">
-          <button onClick={() => {
+        <button onClick={() => {
             console.log('Current height value:', targetHeight);
             handleConversion('image', 'resize-height');
           }}>
@@ -146,7 +163,6 @@ function App() {
             }}
             min="1"
           />
-        </div>
         <div className="aspect-ratio-container">
           <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)}>
             <option value="16:9">16:9</option>
@@ -159,6 +175,7 @@ function App() {
           </select>
           <button onClick={handleAspectRatioConversion}>Convert to Aspect Ratio</button>
         </div>
+        <button onClick={handleMarkdownToText}>Convert Markdown to Text</button>
       </div>
       {showModal && <ImageOverlayModal onClose={() => setShowModal(false)} onOverlay={handleOverlay} />}
       <div className="status">{status}</div>
@@ -167,6 +184,21 @@ function App() {
           <textarea
             readOnly
             value={fileList}
+            onClick={(e) => e.target.select()}
+            style={{
+              width: '100%',
+              minHeight: '200px',
+              marginTop: '20px',
+              padding: '10px',
+            }}
+          />
+        </div>
+      )}
+      {markdownText && (
+        <div className="markdown-output">
+          <textarea
+            readOnly
+            value={markdownText}
             onClick={(e) => e.target.select()}
             style={{
               width: '100%',

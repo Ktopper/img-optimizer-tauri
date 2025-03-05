@@ -5,6 +5,8 @@
 
 use std::process::Command;
 use tauri::Manager;
+use std::fs;
+use regex::Regex;
 
 #[tauri::command]
 fn convert_image(
@@ -101,9 +103,70 @@ fn list_files(folder_path: String) -> String {
     file_list
 }
 
+#[tauri::command]
+fn convert_markdown(markdown_path: String) -> Result<String, String> {
+    let content = fs::read_to_string(&markdown_path)
+        .map_err(|e| format!("Failed to read file: {}", e))?;
+
+    // Convert headers but keep the text (remove only the # symbols)
+    let header_regex = Regex::new(r"^(#{1,6})\s(.*)$").unwrap();
+    let mut text = content
+        .lines()
+        .map(|line| {
+            if header_regex.is_match(line) {
+                header_regex.replace(line, "$2").to_string()
+            } else {
+                line.to_string()
+            }
+        })
+        .collect::<Vec<String>>()
+        .join("\n");
+
+    // Remove inline code blocks
+    text = Regex::new(r"`[^`]+`").unwrap().replace_all(&text, "").to_string();
+
+    // Remove code blocks
+    text = Regex::new(r"```[\s\S]*?```").unwrap().replace_all(&text, "").to_string();
+
+    // Remove links but keep text
+    text = Regex::new(r"\[([^\]]+)\]\([^\)]+\)").unwrap().replace_all(&text, "$1").to_string();
+
+    // Remove images
+    text = Regex::new(r"!\[[^\]]*\]\([^\)]+\)").unwrap().replace_all(&text, "").to_string();
+
+    // Remove bold/italic markers
+    text = Regex::new(r"\*\*|\*|__|\b_\b").unwrap().replace_all(&text, "").to_string();
+
+    // Remove horizontal rules
+    text = Regex::new(r"^\s*[-*_]{3,}\s*$").unwrap().replace_all(&text, "").to_string();
+
+    // Remove blockquotes
+    text = Regex::new(r"^>\s").unwrap().replace_all(&text, "").to_string();
+
+    // Remove list markers
+    text = Regex::new(r"^\s*[-*+]\s").unwrap().replace_all(&text, "").to_string();
+    text = Regex::new(r"^\s*\d+\.\s").unwrap().replace_all(&text, "").to_string();
+
+    // Clean up extra whitespace
+    text = Regex::new(r"\n{3,}").unwrap().replace_all(&text, "\n\n").to_string();
+    text = text.trim().to_string();
+
+    // Save as a new .txt file
+    let txt_path = markdown_path.replace(".md", ".txt").replace(".markdown", ".txt");
+    fs::write(&txt_path, &text)
+        .map_err(|e| format!("Failed to write text file: {}", e))?;
+
+    Ok(text)
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![convert_image, overlay_image, list_files])
+        .invoke_handler(tauri::generate_handler![
+            convert_image,
+            overlay_image,
+            list_files,
+            convert_markdown
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
