@@ -13,6 +13,7 @@ function ImageOverlayModal({ onClose, onOverlay }) {
     });
     setBaseImage(selected);
   };
+  
 
   const selectOverlayImage = async () => {
     const selected = await open({
