@@ -30,8 +30,10 @@ async function convertFolderToWebp(folderPath) {
   return `Converted ${convertedFiles.length} images to WebP`;
 }
 
-async function convertToSquare700(imagePath) {
-  const outputImagePath = imagePath.replace(path.extname(imagePath), '-700.webp');
+async function convertToSquare700(imagePath, convertToWebP = false) {
+  const ext = path.extname(imagePath);
+  const outputExt = convertToWebP ? '.webp' : '.webp'; // Default to webp but respect the flag
+  const outputImagePath = imagePath.replace(ext, `-700${outputExt}`);
   console.log(`Converting to 700px square: ${imagePath} to ${outputImagePath}`);
 
   try {
@@ -159,10 +161,11 @@ async function overlayImage(baseImagePath, overlayImagePath, overlayOption) {
   }
 }
 
-async function resizeToSpecificWidth(imagePath, targetWidth) {
+async function resizeToSpecificWidth(imagePath, targetWidth, convertToWebP = false) {
   const ext = path.extname(imagePath);
-  const outputImagePath = imagePath.replace(ext, `-${targetWidth}w${ext}`);
-  console.log(`Resizing to ${targetWidth}px width: ${imagePath} to ${outputImagePath}`);
+  const outputExt = convertToWebP ? '.webp' : ext;
+  const outputImagePath = imagePath.replace(ext, `-${targetWidth}w${outputExt}`);
+  console.log(`Resizing to ${targetWidth}px width: ${imagePath} to ${outputImagePath}${convertToWebP ? ' (WebP)' : ''}`);
 
   try {
     const width = parseInt(targetWidth, 10);
@@ -173,8 +176,10 @@ async function resizeToSpecificWidth(imagePath, targetWidth) {
     // Create the sharp pipeline for resizing
     let pipeline = sharp(imagePath).resize(width, null, { fit: 'inside' });
     
-    // If the image is in WebP format, ensure the output is properly encoded as WebP.
-    if (ext.toLowerCase() === '.webp') {
+    // Apply format conversion
+    if (convertToWebP) {
+      pipeline = pipeline.webp({ quality: 80 });
+    } else if (ext.toLowerCase() === '.webp') {
       pipeline = pipeline.webp({ quality: 80 });
     }
     
@@ -187,10 +192,11 @@ async function resizeToSpecificWidth(imagePath, targetWidth) {
   }
 }
 
-async function resizeToSpecificHeight(imagePath, targetHeight) {
+async function resizeToSpecificHeight(imagePath, targetHeight, convertToWebP = false) {
   const ext = path.extname(imagePath);
-  const outputImagePath = imagePath.replace(ext, `-${targetHeight}h${ext}`);
-  console.log(`Resizing to ${targetHeight}px height: ${imagePath} to ${outputImagePath}`);
+  const outputExt = convertToWebP ? '.webp' : ext;
+  const outputImagePath = imagePath.replace(ext, `-${targetHeight}h${outputExt}`);
+  console.log(`Resizing to ${targetHeight}px height: ${imagePath} to ${outputImagePath}${convertToWebP ? ' (WebP)' : ''}`);
 
   try {
     const height = parseInt(targetHeight, 10);
@@ -201,8 +207,10 @@ async function resizeToSpecificHeight(imagePath, targetHeight) {
     // Create the sharp pipeline for resizing
     let pipeline = sharp(imagePath).resize(null, height, { fit: 'inside' });
     
-    // If the image is in WebP format, ensure the output is properly encoded as WebP.
-    if (ext.toLowerCase() === '.webp') {
+    // Apply format conversion
+    if (convertToWebP) {
+      pipeline = pipeline.webp({ quality: 80 });
+    } else if (ext.toLowerCase() === '.webp') {
       pipeline = pipeline.webp({ quality: 80 });
     }
     
@@ -215,11 +223,12 @@ async function resizeToSpecificHeight(imagePath, targetHeight) {
   }
 }
 
-async function convertToAspectRatio(imagePath, aspectRatio) {
+async function convertToAspectRatio(imagePath, aspectRatio, convertToWebP = false) {
   const [width, height] = aspectRatio.split(':').map(Number);
   const ext = path.extname(imagePath);
-  const outputImagePath = imagePath.replace(ext, `-${width}x${height}${ext}`);
-  console.log(`Converting to ${width}:${height} aspect ratio: ${imagePath} to ${outputImagePath}`);
+  const outputExt = convertToWebP ? '.webp' : ext;
+  const outputImagePath = imagePath.replace(ext, `-${width}x${height}${outputExt}`);
+  console.log(`Converting to ${width}:${height} aspect ratio: ${imagePath} to ${outputImagePath}${convertToWebP ? ' (WebP)' : ''}`);
 
   if (!width || !height || isNaN(width) || isNaN(height)) {
     throw new Error(`Invalid aspect ratio: ${aspectRatio}`);
@@ -251,9 +260,14 @@ async function convertToAspectRatio(imagePath, aspectRatio) {
       throw new Error(`Invalid new dimensions: ${newWidth}x${newHeight}`);
     }
 
-    await image
-      .resize(newWidth, newHeight, { fit: 'cover', position: 'center' })
-      .toFile(outputImagePath);
+    let pipeline = image.resize(newWidth, newHeight, { fit: 'cover', position: 'center' });
+    
+    // Apply format conversion
+    if (convertToWebP) {
+      pipeline = pipeline.webp({ quality: 80 });
+    }
+
+    await pipeline.toFile(outputImagePath);
 
     console.log(`Successfully converted: ${outputImagePath}`);
     return `Output: ${outputImagePath}`;
@@ -279,8 +293,10 @@ async function convertToJpg(imagePath) {
   }
 }
 
-async function convertToSquare300(imagePath) {
-  const outputImagePath = imagePath.replace(path.extname(imagePath), '-300.webp');
+async function convertToSquare300(imagePath, convertToWebP = false) {
+  const ext = path.extname(imagePath);
+  const outputExt = convertToWebP ? '.webp' : '.webp'; // Default to webp but respect the flag
+  const outputImagePath = imagePath.replace(ext, `-300${outputExt}`);
   console.log(`Converting to 300px square: ${imagePath} to ${outputImagePath}`);
 
   try {
@@ -301,6 +317,7 @@ async function main() {
   if (args[0] === '--image') {
     const imagePath = args[1];
     const conversionType = args[2];
+    const webpFlag = args.includes('--webp');
     let result;
     try {
       switch (conversionType) {
@@ -308,7 +325,7 @@ async function main() {
           result = await convertImageToWebp(imagePath);
           break;
         case 'square700':
-          result = await convertToSquare700(imagePath);
+          result = await convertToSquare700(imagePath, webpFlag);
           break;
         case 'width1600':
           result = await convertToWidth1600(imagePath);
@@ -330,7 +347,7 @@ async function main() {
           if (isNaN(width) || width <= 0) {
             throw new Error('Invalid target width');
           }
-          result = await resizeToSpecificWidth(imagePath, width);
+          result = await resizeToSpecificWidth(imagePath, width, webpFlag);
           break;
         case 'resize-height':
           console.log('Full args:', process.argv);
@@ -349,20 +366,20 @@ async function main() {
             throw new Error(`Invalid target height: ${heightStr}`);
           }
           
-          result = await resizeToSpecificHeight(imagePath, height);
+          result = await resizeToSpecificHeight(imagePath, height, webpFlag);
           break;
         case 'aspect-ratio':
           const aspectRatio = args[3];
           if (!aspectRatio) {
             throw new Error('Aspect ratio not provided');
           }
-          result = await convertToAspectRatio(imagePath, aspectRatio);
+          result = await convertToAspectRatio(imagePath, aspectRatio, webpFlag);
           break;
         case 'jpg':
           result = await convertToJpg(imagePath);
           break;
         case 'square300':
-          result = await convertToSquare300(imagePath);
+          result = await convertToSquare300(imagePath, webpFlag);
           break;
         default:
           throw new Error(`Unknown conversion type: ${conversionType}`);

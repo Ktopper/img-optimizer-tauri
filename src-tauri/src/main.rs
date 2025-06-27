@@ -15,10 +15,12 @@ fn convert_image(
     target_width: Option<String>,
     target_height: Option<String>,
     aspect_ratio: Option<String>,
+    convert_to_webp: Option<bool>,
     app_handle: tauri::AppHandle
 ) -> Result<String, String> {
     println!("Conversion type: {}", conversion_type);
     println!("Target height: {:?}", target_height);
+    println!("Convert to WebP: {:?}", convert_to_webp);
 
     let resource_path = app_handle.path_resolver().resolve_resource("node-backend/convert.cjs")
         .expect("failed to resolve resource");
@@ -35,6 +37,9 @@ fn convert_image(
             if let Some(width) = target_width {
                 command.arg(width);
             }
+            if convert_to_webp.unwrap_or(false) {
+                command.arg("--webp");
+            }
         }
         "resize-height" => {
             if let Some(height) = target_height {
@@ -42,6 +47,22 @@ fn convert_image(
                 command.arg(height);
             } else {
                 println!("No height value provided");
+            }
+            if convert_to_webp.unwrap_or(false) {
+                command.arg("--webp");
+            }
+        }
+        "aspect-ratio" => {
+            if let Some(ratio) = aspect_ratio {
+                command.arg(ratio);
+            }
+            if convert_to_webp.unwrap_or(false) {
+                command.arg("--webp");
+            }
+        }
+        "square700" | "square300" => {
+            if convert_to_webp.unwrap_or(false) {
+                command.arg("--webp");
             }
         }
         _ => {
