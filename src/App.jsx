@@ -14,6 +14,7 @@ function App() {
   const [fileList, setFileList] = useState('');
   const [markdownText, setMarkdownText] = useState('');
   const [convertToWebP, setConvertToWebP] = useState(true);
+  const [activeTab, setActiveTab] = useState('formats');
 
   const handleConversion = async (type, conversionType) => {
     try {
@@ -160,225 +161,264 @@ function App() {
       </header>
 
       <main className="main-content">
-        {/* Format Conversion Tools */}
-        <section className="tools-section">
-          <h2 className="section-title">
-            <div className="section-icon"></div>
+        {/* Tab Navigation */}
+        <nav className="tab-navigation">
+          <button 
+            className={`tab-button ${activeTab === 'formats' ? 'active' : ''}`}
+            onClick={() => setActiveTab('formats')}
+          >
             Format Conversion
-          </h2>
-          <div className="tools-grid">
-            <div className="tool-card">
-              <h3>WebP Conversion</h3>
-              <p>Convert images to modern WebP format for better compression</p>
-              <div className="tool-controls">
-                <button onClick={() => handleConversion('image', 'webp')} disabled={isLoading}>
-                  {isLoading ? <span className="loading"></span> : null}
-                  Convert to WebP
-                </button>
-                <button onClick={() => handleConversion('folder', 'webp')} disabled={isLoading}>
-                  Convert Folder to WebP
-                </button>
-              </div>
-            </div>
-
-            <div className="tool-card">
-              <h3>JPG Conversion</h3>
-              <p>Convert images to JPG format with quality optimization</p>
-              <div className="tool-controls">
-                <button onClick={() => handleConversion('image', 'jpg')} disabled={isLoading}>
-                  Convert to JPG
-                </button>
-              </div>
-            </div>
-
-            <div className="tool-card">
-              <h3>ICO Conversion</h3>
-              <p>Create favicon and icon files from your images</p>
-              <div className="tool-controls">
-                <button onClick={() => handleConversion('image', 'ico')} disabled={isLoading}>
-                  Convert to ICO
-                </button>
-              </div>
-            </div>
-
-            <div className="tool-card">
-              <h3>PNG Thumbnails</h3>
-              <p>Generate 100x100 PNG thumbnails with center cropping</p>
-              <div className="tool-controls">
-                <button onClick={() => handleConversion('image', 'png100')} disabled={isLoading}>
-                  Create 100x100 PNG
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Size & Dimension Tools */}
-        <section className="tools-section">
-          <h2 className="section-title">
-            <div className="section-icon"></div>
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'dimensions' ? 'active' : ''}`}
+            onClick={() => setActiveTab('dimensions')}
+          >
             Size & Dimensions
-          </h2>
-          
-          {/* Global WebP Conversion Option */}
-          <div className="webp-option">
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                checked={convertToWebP}
-                onChange={(e) => setConvertToWebP(e.target.checked)}
-                className="webp-checkbox"
-              />
-              <span className="checkmark"></span>
-              Convert to WebP format during resize operations
-            </label>
-          </div>
-
-          <div className="tools-grid">
-            <div className="tool-card">
-              <h3>Square Formats</h3>
-              <p>Perfect for social media and profile pictures</p>
-              <div className="tool-controls">
-                <button onClick={() => handleConversion('image', 'square700')} disabled={isLoading}>
-                  700px Square{convertToWebP ? ' → WebP' : ''}
-                </button>
-                <button onClick={() => handleConversion('image', 'square300')} disabled={isLoading}>
-                  300px Square{convertToWebP ? ' → WebP' : ''}
-                </button>
-              </div>
-            </div>
-
-            <div className="tool-card">
-              <h3>Web Optimized</h3>
-              <p>Standard web dimensions for optimal loading</p>
-              <div className="tool-controls">
-                <button onClick={() => handleConversion('image', 'width1600')} disabled={isLoading}>
-                  1600px Width
-                </button>
-              </div>
-            </div>
-
-            <div className="tool-card">
-              <h3>Custom Width</h3>
-              <p>Resize to specific width while maintaining aspect ratio</p>
-              <div className="tool-controls">
-                <div className="control-row">
-                  <input
-                    type="number"
-                    value={targetWidth}
-                    onChange={(e) => setTargetWidth(e.target.value)}
-                    min="1"
-                    placeholder="Width in pixels"
-                  />
-                  <button onClick={() => handleConversion('image', 'resize')} disabled={isLoading}>
-                    Resize Width{convertToWebP ? ' → WebP' : ''}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="tool-card">
-              <h3>Custom Height</h3>
-              <p>Resize to specific height while maintaining aspect ratio</p>
-              <div className="tool-controls">
-                <div className="control-row">
-                  <input
-                    type="number"
-                    value={targetHeight}
-                    onChange={(e) => setTargetHeight(parseInt(e.target.value, 10))}
-                    min="1"
-                    placeholder="Height in pixels"
-                  />
-                  <button onClick={() => handleConversion('image', 'resize-height')} disabled={isLoading}>
-                    Resize Height{convertToWebP ? ' → WebP' : ''}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div className="tool-card">
-              <h3>Aspect Ratio</h3>
-              <p>Convert images to specific aspect ratios</p>
-              <div className="tool-controls">
-                <div className="control-row">
-                  <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)}>
-                    <option value="16:9">16:9 (Widescreen)</option>
-                    <option value="3:2">3:2 (Photography)</option>
-                    <option value="4:3">4:3 (Standard)</option>
-                    <option value="1:1">1:1 (Square)</option>
-                    <option value="2:1">2:1 (Panoramic)</option>
-                    <option value="1:2">1:2 (Portrait)</option>
-                    <option value="3:4">3:4 (Portrait)</option>
-                    <option value="5:3">5:3 (Wide)</option>
-                  </select>
-                  <button onClick={handleAspectRatioConversion} disabled={isLoading}>
-                    Convert Ratio{convertToWebP ? ' → WebP' : ''}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Effects & Processing */}
-        <section className="tools-section">
-          <h2 className="section-title">
-            <div className="section-icon"></div>
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'effects' ? 'active' : ''}`}
+            onClick={() => setActiveTab('effects')}
+          >
             Effects & Processing
-          </h2>
-          <div className="tools-grid">
-            <div className="tool-card">
-              <h3>Grayscale Conversion</h3>
-              <p>Convert images to black and white with brightness enhancement</p>
-              <div className="tool-controls">
-                <button onClick={() => handleConversion('image', 'grayscale')} disabled={isLoading}>
-                  Convert to Grayscale
-                </button>
-              </div>
-            </div>
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'utilities' ? 'active' : ''}`}
+            onClick={() => setActiveTab('utilities')}
+          >
+            Utilities
+          </button>
+        </nav>
 
-            <div className="tool-card">
-              <h3>Image Overlay</h3>
-              <p>Add watermarks, logos, or decorative elements to your images</p>
-              <div className="tool-controls">
-                <button onClick={() => setShowModal(true)} disabled={isLoading}>
-                  Open Overlay Tool
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* Tab Content */}
+        <div className="tab-content">
+          {/* Format Conversion Tab */}
+          {activeTab === 'formats' && (
+            <section className="tools-section">
+              <h2 className="section-title">
+                <div className="section-icon"></div>
+                Format Conversion Tools
+              </h2>
+              <div className="tools-grid">
+                <div className="tool-card">
+                  <h3>WebP Conversion</h3>
+                  <p>Convert images to modern WebP format for better compression</p>
+                  <div className="tool-controls">
+                    <button onClick={() => handleConversion('image', 'webp')} disabled={isLoading}>
+                      {isLoading ? <span className="loading"></span> : null}
+                      Convert to WebP
+                    </button>
+                    <button onClick={() => handleConversion('folder', 'webp')} disabled={isLoading}>
+                      Convert Folder to WebP
+                    </button>
+                  </div>
+                </div>
 
-        {/* Utility Tools */}
-        <section className="tools-section">
-          <h2 className="section-title">
-            <div className="section-icon"></div>
-            Utility Tools
-          </h2>
-          <div className="tools-grid">
-            <div className="tool-card">
-              <h3>File Explorer</h3>
-              <p>List and explore files in any directory</p>
-              <div className="tool-controls">
-                <button onClick={handleListFiles} disabled={isLoading}>
-                  List Files in Folder
-                </button>
-              </div>
-            </div>
+                <div className="tool-card">
+                  <h3>JPG Conversion</h3>
+                  <p>Convert images to JPG format with quality optimization</p>
+                  <div className="tool-controls">
+                    <button onClick={() => handleConversion('image', 'jpg')} disabled={isLoading}>
+                      Convert to JPG
+                    </button>
+                  </div>
+                </div>
 
-            <div className="tool-card">
-              <h3>Markdown Converter</h3>
-              <p>Convert Markdown files to plain text</p>
-              <div className="tool-controls">
-                <button onClick={handleMarkdownToText} disabled={isLoading}>
-                  Convert Markdown
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
+                <div className="tool-card">
+                  <h3>ICO Conversion</h3>
+                  <p>Create favicon and icon files from your images</p>
+                  <div className="tool-controls">
+                    <button onClick={() => handleConversion('image', 'ico')} disabled={isLoading}>
+                      Convert to ICO
+                    </button>
+                  </div>
+                </div>
 
-        {/* Status Section */}
+                <div className="tool-card">
+                  <h3>PNG Thumbnails</h3>
+                  <p>Generate 100x100 PNG thumbnails with center cropping</p>
+                  <div className="tool-controls">
+                    <button onClick={() => handleConversion('image', 'png100')} disabled={isLoading}>
+                      Create 100x100 PNG
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Size & Dimensions Tab */}
+          {activeTab === 'dimensions' && (
+            <section className="tools-section">
+              <h2 className="section-title">
+                <div className="section-icon"></div>
+                Size & Dimensions Tools
+              </h2>
+              
+              {/* Global WebP Conversion Option */}
+              <div className="webp-option">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={convertToWebP}
+                    onChange={(e) => setConvertToWebP(e.target.checked)}
+                    className="webp-checkbox"
+                  />
+                  <span className="checkmark"></span>
+                  Convert to WebP format during resize operations
+                </label>
+              </div>
+
+              <div className="tools-grid">
+                <div className="tool-card">
+                  <h3>Square Formats</h3>
+                  <p>Perfect for social media and profile pictures</p>
+                  <div className="tool-controls">
+                    <button onClick={() => handleConversion('image', 'square700')} disabled={isLoading}>
+                      700px Square{convertToWebP ? ' → WebP' : ''}
+                    </button>
+                    <button onClick={() => handleConversion('image', 'square300')} disabled={isLoading}>
+                      300px Square{convertToWebP ? ' → WebP' : ''}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="tool-card">
+                  <h3>Web Optimized</h3>
+                  <p>Standard web dimensions for optimal loading</p>
+                  <div className="tool-controls">
+                    <button onClick={() => handleConversion('image', 'width1600')} disabled={isLoading}>
+                      1600px Width
+                    </button>
+                  </div>
+                </div>
+
+                <div className="tool-card">
+                  <h3>Custom Width</h3>
+                  <p>Resize to specific width while maintaining aspect ratio</p>
+                  <div className="tool-controls">
+                    <div className="control-row">
+                      <input
+                        type="number"
+                        value={targetWidth}
+                        onChange={(e) => setTargetWidth(e.target.value)}
+                        min="1"
+                        placeholder="Width in pixels"
+                      />
+                      <button onClick={() => handleConversion('image', 'resize')} disabled={isLoading}>
+                        Resize Width{convertToWebP ? ' → WebP' : ''}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="tool-card">
+                  <h3>Custom Height</h3>
+                  <p>Resize to specific height while maintaining aspect ratio</p>
+                  <div className="tool-controls">
+                    <div className="control-row">
+                      <input
+                        type="number"
+                        value={targetHeight}
+                        onChange={(e) => setTargetHeight(parseInt(e.target.value, 10))}
+                        min="1"
+                        placeholder="Height in pixels"
+                      />
+                      <button onClick={() => handleConversion('image', 'resize-height')} disabled={isLoading}>
+                        Resize Height{convertToWebP ? ' → WebP' : ''}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="tool-card">
+                  <h3>Aspect Ratio</h3>
+                  <p>Convert images to specific aspect ratios</p>
+                  <div className="tool-controls">
+                    <div className="control-row">
+                      <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)}>
+                        <option value="16:9">16:9 (Widescreen)</option>
+                        <option value="3:2">3:2 (Photography)</option>
+                        <option value="4:3">4:3 (Standard)</option>
+                        <option value="1:1">1:1 (Square)</option>
+                        <option value="2:1">2:1 (Panoramic)</option>
+                        <option value="1:2">1:2 (Portrait)</option>
+                        <option value="3:4">3:4 (Portrait)</option>
+                        <option value="5:3">5:3 (Wide)</option>
+                      </select>
+                      <button onClick={handleAspectRatioConversion} disabled={isLoading}>
+                        Convert Ratio{convertToWebP ? ' → WebP' : ''}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Effects & Processing Tab */}
+          {activeTab === 'effects' && (
+            <section className="tools-section">
+              <h2 className="section-title">
+                <div className="section-icon"></div>
+                Effects & Processing Tools
+              </h2>
+              <div className="tools-grid">
+                <div className="tool-card">
+                  <h3>Grayscale Conversion</h3>
+                  <p>Convert images to black and white with brightness enhancement</p>
+                  <div className="tool-controls">
+                    <button onClick={() => handleConversion('image', 'grayscale')} disabled={isLoading}>
+                      Convert to Grayscale
+                    </button>
+                  </div>
+                </div>
+
+                <div className="tool-card">
+                  <h3>Image Overlay</h3>
+                  <p>Add watermarks, logos, or decorative elements to your images</p>
+                  <div className="tool-controls">
+                    <button onClick={() => setShowModal(true)} disabled={isLoading}>
+                      Open Overlay Tool
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Utilities Tab */}
+          {activeTab === 'utilities' && (
+            <section className="tools-section">
+              <h2 className="section-title">
+                <div className="section-icon"></div>
+                Utility Tools
+              </h2>
+              <div className="tools-grid">
+                <div className="tool-card">
+                  <h3>File Explorer</h3>
+                  <p>List and explore files in any directory</p>
+                  <div className="tool-controls">
+                    <button onClick={handleListFiles} disabled={isLoading}>
+                      List Files in Folder
+                    </button>
+                  </div>
+                </div>
+
+                <div className="tool-card">
+                  <h3>Markdown Converter</h3>
+                  <p>Convert Markdown files to plain text</p>
+                  <div className="tool-controls">
+                    <button onClick={handleMarkdownToText} disabled={isLoading}>
+                      Convert Markdown
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* Status Section - Always Visible */}
         <section className="status-section">
           <h2 className="section-title">
             <div className="section-icon"></div>
