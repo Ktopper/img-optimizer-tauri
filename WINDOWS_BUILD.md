@@ -8,7 +8,7 @@
 ## Build Steps
 ```cmd
 # Clone the repository
-git clone [your-repo-url]
+git clone https://github.com/Ktopper/img-optimizer-tauri.git
 cd img-optimizer-tauri
 
 # Install dependencies

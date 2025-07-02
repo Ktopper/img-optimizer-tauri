@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { invoke } from '@tauri-apps/api/tauri';
 import { open } from '@tauri-apps/api/dialog';
 import './App.css';
@@ -15,6 +15,19 @@ function App() {
   const [markdownText, setMarkdownText] = useState('');
   const [convertToWebP, setConvertToWebP] = useState(true);
   const [activeTab, setActiveTab] = useState('formats');
+
+  // Check for updates on app start
+  useEffect(() => {
+    const checkUpdates = async () => {
+      try {
+        await invoke('check_for_updates');
+      } catch (error) {
+        console.log('Update check error:', error);
+      }
+    };
+    
+    checkUpdates();
+  }, []);
 
   const handleConversion = async (type, conversionType) => {
     try {

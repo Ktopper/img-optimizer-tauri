@@ -180,13 +180,48 @@ fn convert_markdown(markdown_path: String) -> Result<String, String> {
     Ok(text)
 }
 
+#[tauri::command]
+async fn check_for_updates(app_handle: tauri::AppHandle) -> Result<(), String> {
+    match app_handle.updater() {
+        Ok(updater) => {
+            match updater.check().await {
+                Ok(update) => {
+                    if update.is_update_available() {
+                        println!("Update available: {}", update.latest_version());
+                        // The dialog is automatically shown because dialog: true in config
+                        match update.download_and_install().await {
+                            Ok(_) => {
+                                println!("Update downloaded and installed successfully");
+                                app_handle.restart();
+                            }
+                            Err(e) => {
+                                return Err(format!("Failed to download and install update: {}", e));
+                            }
+                        }
+                    } else {
+                        println!("No update available");
+                    }
+                }
+                Err(e) => {
+                    return Err(format!("Failed to check for updates: {}", e));
+                }
+            }
+        }
+        Err(e) => {
+            return Err(format!("Failed to get updater: {}", e));
+        }
+    }
+    Ok(())
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             convert_image,
             overlay_image,
             list_files,
-            convert_markdown
+            convert_markdown,
+            check_for_updates
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
