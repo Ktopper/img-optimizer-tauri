@@ -20,18 +20,20 @@ dW50cnVzdGVkIGNvbW1lbnQ6IHJzaWduIGVuY3J5cHRlZCBzZWNyZXQga2V5ClJXUlRZMEl5b0dFVEVT
 ```
 
 ### 2. Create Your First Release
-```bash
-# Update version in both files:
-# package.json: "version": "0.1.1" 
-# src-tauri/Cargo.toml: version = "0.1.1"
+**IMPORTANT:** The GitHub Actions workflow has been fixed for proper tag handling.
 
-# Commit and create release
+```bash
+# First, commit all the setup changes
 git add .
-git commit -m "Setup auto-updates v0.1.1"
-git tag v0.1.1
+git commit -m "Setup auto-updates and fix release workflow"
 git push origin main
+
+# Then create a properly formatted release
+git tag v0.1.1
 git push origin v0.1.1
 ```
+
+**Note:** Always use the format `v0.1.1` (with 'v' prefix) for tags.
 
 ### 3. What Happens Next
 1. **GitHub Actions** builds Windows, macOS, and Linux versions

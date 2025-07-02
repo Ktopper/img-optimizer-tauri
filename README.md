@@ -5,6 +5,9 @@ I'm tinkering with a Tauri app for optimizing images – it's my playground for 
 
 A powerful desktop application built with Tauri and React for batch processing and optimizing images with various conversion options.
 
+## 🚀 **Auto-Updates Enabled**
+This app automatically checks for and installs updates when you start it. No manual downloads needed!
+
 ## Features
 
 - Convert images to WebP format
@@ -38,10 +41,21 @@ A powerful desktop application built with Tauri and React for batch processing a
 
 ## Installation
 
+### For Users
+Download the latest version from the [Releases page](https://github.com/Ktopper/img-optimizer-tauri/releases).
+
+- **Windows**: Download the `.msi` installer
+- **macOS**: Download the `.dmg` file  
+- **Linux**: Download the `.AppImage` or `.deb` file
+
+The app will automatically update itself when new versions are available.
+
+### For Developers
+
 1. Clone the repository
    ```bash
-   git clone [your-repository-url]
-   cd img-optimizer
+   git clone https://github.com/Ktopper/img-optimizer-tauri.git
+   cd img-optimizer-tauri
    ```
 
 2. Install dependencies
