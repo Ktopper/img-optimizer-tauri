@@ -15,6 +15,9 @@ function App() {
   const [markdownText, setMarkdownText] = useState('');
   const [convertToWebP, setConvertToWebP] = useState(true);
   const [activeTab, setActiveTab] = useState('formats');
+  const [videoAspectRatio, setVideoAspectRatio] = useState('16:9');
+  const [videoResolution, setVideoResolution] = useState('720p');
+  const [videoCompression, setVideoCompression] = useState('medium');
 
   // Check for updates on app start
   useEffect(() => {
@@ -116,6 +119,32 @@ function App() {
     }
   };
 
+  const handleVideoConversion = async () => {
+    try {
+      setIsLoading(true);
+      const selected = await open({ multiple: false, filters: [{ name: 'Videos', extensions: ['mp4','mov','mkv','webm'] }] });
+      if (!selected) {
+        setIsLoading(false);
+        return;
+      }
+
+      setStatus('Converting video...');
+      const payload = {
+        videoPath: selected,
+        aspectRatio: videoAspectRatio,
+        resolution: videoResolution,
+        compression: videoCompression
+      };
+
+      const response = await invoke('convert_video', payload);
+      setStatus(response);
+    } catch (error) {
+      setStatus(`Error: ${error}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleListFiles = async () => {
     try {
       setIsLoading(true);
@@ -199,6 +228,12 @@ function App() {
             onClick={() => setActiveTab('utilities')}
           >
             Utilities
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'video' ? 'active' : ''}`}
+            onClick={() => setActiveTab('video')}
+          >
+            Video
           </button>
         </nav>
 
@@ -351,6 +386,7 @@ function App() {
                       <select value={aspectRatio} onChange={(e) => setAspectRatio(e.target.value)}>
                         <option value="16:9">16:9 (Widescreen)</option>
                         <option value="3:2">3:2 (Photography)</option>
+                        <option value="2:3">2:3 (Vertical Photo)</option>
                         <option value="4:3">4:3 (Standard)</option>
                         <option value="1:1">1:1 (Square)</option>
                         <option value="2:1">2:1 (Panoramic)</option>
@@ -360,6 +396,59 @@ function App() {
                       </select>
                       <button onClick={handleAspectRatioConversion} disabled={isLoading}>
                         Convert Ratio{convertToWebP ? ' → WebP' : ''}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* Video Tab */}
+          {activeTab === 'video' && (
+            <section className="tools-section">
+              <h2 className="section-title">
+                <div className="section-icon"></div>
+                Video Compression & Resizing
+              </h2>
+              <p style={{ color: 'var(--text-secondary)' }}>
+                Convert and compress videos to common aspect ratios and resolutions. Choose a compression level to trade quality for smaller files.
+              </p>
+
+              <div className="tools-grid">
+                <div className="tool-card">
+                  <h3>Settings</h3>
+                  <div className="tool-controls">
+                    <div className="control-row">
+                      <label>Aspect Ratio</label>
+                      <select value={videoAspectRatio} onChange={(e) => setVideoAspectRatio(e.target.value)}>
+                        <option value="16:9">16:9 (Widescreen)</option>
+                        <option value="1:1">1:1 (Square)</option>
+                        <option value="2:3">2:3 (Vertical)</option>
+                      </select>
+                    </div>
+
+                    <div className="control-row">
+                      <label>Resolution</label>
+                      <select value={videoResolution} onChange={(e) => setVideoResolution(e.target.value)}>
+                        <option value="720p">720p</option>
+                        <option value="480p">480p</option>
+                      </select>
+                    </div>
+
+                    <div className="control-row">
+                      <label>Compression</label>
+                      <select value={videoCompression} onChange={(e) => setVideoCompression(e.target.value)}>
+                        <option value="high">High Compression (smaller, more loss)</option>
+                        <option value="medium">Balanced</option>
+                        <option value="low">Low Compression (better quality)</option>
+                      </select>
+                    </div>
+
+                    <div className="control-row" style={{ marginTop: '1rem' }}>
+                      <button onClick={() => handleVideoConversion()} disabled={isLoading} className="success">
+                        {isLoading ? <span className="loading"></span> : null}
+                        Convert Video
                       </button>
                     </div>
                   </div>

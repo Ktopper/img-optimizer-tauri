@@ -1,6 +1,7 @@
 const sharp = require('sharp');
 const fs = require('fs');
 const path = require('path');
+const { spawn, spawnSync } = require('child_process');
 
 async function convertImageToWebp(imagePath) {
   const outputImagePath = imagePath.replace(path.extname(imagePath), '.webp');
@@ -312,6 +313,84 @@ async function convertToSquare300(imagePath, convertToWebP = false) {
   }
 }
 
+/**
+ * Convert video using ffmpeg. Supports aspect ratios 16:9 and 1:1 and resolutions 720p and 480p.
+ * compression: 'high' (more), 'medium' (balanced), 'low' (less compression)
+ */
+function convertVideo(videoPath, aspectRatio = '16:9', resolution = '720p', compression = 'medium') {
+  return new Promise((resolve, reject) => {
+    if (!fs.existsSync(videoPath)) {
+      return reject(new Error('Video file not found'));
+    }
+
+    // Quick check for ffmpeg on PATH
+    try {
+      const check = spawnSync('ffmpeg', ['-version']);
+      if (check.error || check.status !== 0) {
+        return reject(new Error('ffmpeg not found or not executable. Please install ffmpeg and ensure it is on PATH.'));
+      }
+    } catch (err) {
+      return reject(new Error('ffmpeg not found. Please install ffmpeg and ensure it is on PATH.'));
+    }
+
+    const ext = path.extname(videoPath);
+    const base = videoPath.replace(ext, '');
+    const outputPath = `${base}-${aspectRatio.replace(':','x')}-${resolution}.mp4`;
+
+    // Determine scale based on resolution
+    let targetHeight = 720;
+    if (resolution === '480p') targetHeight = 480;
+
+    // Determine desired width from aspect ratio
+    const [arW, arH] = aspectRatio.split(':').map(Number);
+    if (!arW || !arH) return reject(new Error('Invalid aspect ratio'));
+    const targetWidth = Math.round((targetHeight * arW) / arH);
+
+    // Compression mapping -> CRF (lower is better quality). We'll use libx264 with reasonable presets.
+    let crf = 23; // default medium
+    if (compression === 'high') crf = 28; // higher crf -> smaller file, lower quality
+    if (compression === 'low') crf = 18; // lower crf -> better quality
+
+    // ffmpeg filter: scale and crop to enforce aspect ratio and size
+    // We'll first scale to fit the target height while preserving aspect, then crop center to exact width if needed
+    const scaleFilter = `scale='if(gt(a,${arW/arH}),-2,${targetWidth})':'if(gt(a,${arW/arH}),${targetHeight},-2)'`;
+    const cropFilter = `crop=${targetWidth}:${targetHeight}`;
+    const vf = `${scaleFilter},${cropFilter}`;
+
+    const ffmpegArgs = [
+      '-y',
+      '-i', videoPath,
+      '-vf', vf,
+      '-c:v', 'libx264',
+      '-preset', 'slow',
+      '-crf', String(crf),
+      '-c:a', 'aac',
+      '-b:a', '128k',
+      outputPath
+    ];
+
+    const ff = spawn('ffmpeg', ffmpegArgs);
+
+    // handle spawn errors (ENOENT etc.) to avoid unhandled exceptions
+    ff.on('error', (err) => {
+      return reject(new Error(`Failed to start ffmpeg: ${err.message}. Please ensure ffmpeg is installed and on PATH.`));
+    });
+
+    let stderr = '';
+    ff.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    ff.on('close', (code) => {
+      if (code === 0) {
+        resolve(`Output: ${outputPath}`);
+      } else {
+        reject(new Error(`ffmpeg exited with code ${code}: ${stderr}`));
+      }
+    });
+  });
+}
+
 async function main() {
   const args = process.argv.slice(2);
   if (args[0] === '--image') {
@@ -393,6 +472,20 @@ async function main() {
     const folderPath = args[1];
     const result = await convertFolderToWebp(folderPath);
     console.log(result);
+  } else if (args[0] === '--video') {
+    // args: --video <path> <aspectRatio> <resolution> <compression>
+    const videoPath = args[1];
+    const aspectRatio = args[2] || '16:9';
+    const resolution = args[3] || '720p';
+    const compression = args[4] || 'medium';
+
+    try {
+      const result = await convertVideo(videoPath, aspectRatio, resolution, compression);
+      console.log(result);
+    } catch (err) {
+      console.error(err);
+      process.exit(1);
+    }
   } else {
     console.error('Invalid arguments. Use --image <path> <conversionType> or --folder <path>');
     process.exit(1);

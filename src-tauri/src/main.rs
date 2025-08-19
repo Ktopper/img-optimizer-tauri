@@ -107,6 +107,29 @@ fn overlay_image(base_image_path: String, overlay_image_path: String, overlay_op
 }
 
 #[tauri::command]
+fn convert_video(video_path: String, aspect_ratio: String, resolution: String, compression: String, app_handle: tauri::AppHandle) -> Result<String, String> {
+    let resource_path = app_handle.path_resolver().resolve_resource("node-backend/convert.cjs")
+        .expect("failed to resolve resource");
+    let node_backend = resource_path.to_str().unwrap();
+
+    let output = Command::new("node")
+        .arg(node_backend)
+        .arg("--video")
+        .arg(&video_path)
+        .arg(&aspect_ratio)
+        .arg(&resolution)
+        .arg(&compression)
+        .output()
+        .map_err(|e| e.to_string())?;
+
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    } else {
+        Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
+    }
+}
+
+#[tauri::command]
 fn list_files(folder_path: String) -> String {
     let paths = std::fs::read_dir(folder_path).unwrap();
     let mut file_list = String::new();
@@ -184,6 +207,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             convert_image,
             overlay_image,
+            convert_video,
             list_files,
             convert_markdown
         ])

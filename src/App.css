@@ -50,10 +50,13 @@ body {
 }
 
 .App {
-  max-width: 1400px;
+  /* Increased max-width so the app is wider on desktop screens */
+  max-width: 1700px;
   margin: 0 auto;
-  padding: 2rem;
-  min-height: 100vh;
+  /* Slightly more padding so contents breathe at larger sizes */
+  padding: 2.5rem;
+  /* Provide a bit more vertical space inside the app container */
+  min-height: calc(100vh - 2rem);
   display: flex;
   flex-direction: column;
 }
@@ -665,7 +668,8 @@ button[disabled]:has-text('→ WebP') {
 
 /* Tab Content */
 .tab-content {
-  min-height: 60vh;
+  /* Increased tab content height so panels feel roomier */
+  min-height: 70vh;
   animation: slideIn 0.25s ease-out;
   overflow-y: auto;
   scroll-behavior: smooth;
