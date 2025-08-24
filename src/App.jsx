@@ -423,6 +423,7 @@ function App() {
                       <label>Aspect Ratio</label>
                       <select value={videoAspectRatio} onChange={(e) => setVideoAspectRatio(e.target.value)}>
                         <option value="16:9">16:9 (Widescreen)</option>
+                        <option value="9:16">9:16 (Portrait)</option>
                         <option value="1:1">1:1 (Square)</option>
                         <option value="2:3">2:3 (Vertical)</option>
                       </select>

@@ -3,6 +3,38 @@ const fs = require('fs');
 const path = require('path');
 const { spawn, spawnSync } = require('child_process');
 
+// Resolve ffmpeg executable path robustly. Try PATH first, then common install locations.
+function resolveFfmpeg() {
+  // Try spawnSync to check if ffmpeg is callable
+  try {
+    const which = spawnSync(process.platform === 'win32' ? 'where' : 'which', ['ffmpeg']);
+    if (which && which.status === 0) {
+      const out = which.stdout.toString().split(/\r?\n/)[0].trim();
+      if (out) return out;
+    }
+  } catch (e) {
+    // ignore
+  }
+
+  // Common Windows locations (winget/Gyan, ffmpeg windows builds)
+  if (process.platform === 'win32') {
+    const candidates = [
+      path.join(process.env['ProgramFiles'] || 'C:\\Program Files', 'ffmpeg', 'bin', 'ffmpeg.exe'),
+      path.join(process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)', 'ffmpeg', 'bin', 'ffmpeg.exe'),
+      path.join(process.env['USERPROFILE'] || 'C:\\Users\\Default', 'scoop', 'apps', 'ffmpeg', 'current', 'bin', 'ffmpeg.exe'),
+      path.join(process.env['USERPROFILE'] || 'C:\\Users\\Default', 'AppData', 'Local', 'Programs', 'ffmpeg', 'bin', 'ffmpeg.exe'),
+    ];
+    for (const p of candidates) {
+      try {
+        if (fs.existsSync(p)) return p;
+      } catch (e) {}
+    }
+  }
+
+  // Fallback to just 'ffmpeg' (will error later if not found)
+  return 'ffmpeg';
+}
+
 async function convertImageToWebp(imagePath) {
   const outputImagePath = imagePath.replace(path.extname(imagePath), '.webp');
   console.log(`Converting: ${imagePath} to ${outputImagePath}`);
@@ -314,7 +346,7 @@ async function convertToSquare300(imagePath, convertToWebP = false) {
 }
 
 /**
- * Convert video using ffmpeg. Supports aspect ratios 16:9 and 1:1 and resolutions 720p and 480p.
+ * Convert video using ffmpeg. Supports aspect ratios 16:9, 9:16, and 1:1 and resolutions 720p and 480p.
  * compression: 'high' (more), 'medium' (balanced), 'low' (less compression)
  */
 function convertVideo(videoPath, aspectRatio = '16:9', resolution = '720p', compression = 'medium') {
@@ -323,28 +355,36 @@ function convertVideo(videoPath, aspectRatio = '16:9', resolution = '720p', comp
       return reject(new Error('Video file not found'));
     }
 
-    // Quick check for ffmpeg on PATH
+    // Resolve ffmpeg executable robustly and verify it works
+    const ffmpegPath = resolveFfmpeg();
     try {
-      const check = spawnSync('ffmpeg', ['-version']);
+      const check = spawnSync(ffmpegPath, ['-version']);
       if (check.error || check.status !== 0) {
-        return reject(new Error('ffmpeg not found or not executable. Please install ffmpeg and ensure it is on PATH.'));
+        return reject(new Error(`ffmpeg not found or not executable at '${ffmpegPath}'. Please install ffmpeg and ensure it is on PATH.`));
       }
     } catch (err) {
-      return reject(new Error('ffmpeg not found. Please install ffmpeg and ensure it is on PATH.'));
+      return reject(new Error(`ffmpeg not found or not executable at '${ffmpegPath}'. Please install ffmpeg and ensure it is on PATH.`));
     }
 
     const ext = path.extname(videoPath);
     const base = videoPath.replace(ext, '');
     const outputPath = `${base}-${aspectRatio.replace(':','x')}-${resolution}.mp4`;
 
-    // Determine scale based on resolution
-    let targetHeight = 720;
-    if (resolution === '480p') targetHeight = 480;
-
-    // Determine desired width from aspect ratio
+    // Determine scale based on resolution and aspect ratio
     const [arW, arH] = aspectRatio.split(':').map(Number);
     if (!arW || !arH) return reject(new Error('Invalid aspect ratio'));
-    const targetWidth = Math.round((targetHeight * arW) / arH);
+    
+    let targetWidth, targetHeight;
+    
+    if (aspectRatio === '9:16') {
+      // For 9:16 (portrait), use width as the base measurement
+      targetWidth = resolution === '480p' ? 270 : 405; // 480p: 270x480, 720p: 405x720
+      targetHeight = Math.round((targetWidth * arH) / arW);
+    } else {
+      // For 16:9 and 1:1 (landscape/square), use height as the base measurement
+      targetHeight = resolution === '480p' ? 480 : 720;
+      targetWidth = Math.round((targetHeight * arW) / arH);
+    }
 
     // Compression mapping -> CRF (lower is better quality). We'll use libx264 with reasonable presets.
     let crf = 23; // default medium
@@ -369,7 +409,9 @@ function convertVideo(videoPath, aspectRatio = '16:9', resolution = '720p', comp
       outputPath
     ];
 
-    const ff = spawn('ffmpeg', ffmpegArgs);
+    console.log(`Converting video: ${videoPath} to ${outputPath} (${aspectRatio}, ${resolution}, ${compression} compression)`);
+
+  const ff = spawn(ffmpegPath, ffmpegArgs);
 
     // handle spawn errors (ENOENT etc.) to avoid unhandled exceptions
     ff.on('error', (err) => {
@@ -383,6 +425,7 @@ function convertVideo(videoPath, aspectRatio = '16:9', resolution = '720p', comp
 
     ff.on('close', (code) => {
       if (code === 0) {
+        console.log(`Successfully converted: ${outputPath}`);
         resolve(`Output: ${outputPath}`);
       } else {
         reject(new Error(`ffmpeg exited with code ${code}: ${stderr}`));
