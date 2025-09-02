@@ -3,11 +3,14 @@ import { invoke } from '@tauri-apps/api/tauri';
 import { open } from '@tauri-apps/api/dialog';
 import './App.css';
 import ImageOverlayModal from './ImageOverlayModal';
+import ImageCropModal from './ImageCropModal';
 
 function App() {
   const [status, setStatus] = useState('Ready to optimize images');
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [cropInitialPath, setCropInitialPath] = useState(null);
   const [targetWidth, setTargetWidth] = useState(800);
   const [targetHeight, setTargetHeight] = useState(800);
   const [aspectRatio, setAspectRatio] = useState('16:9');
@@ -397,6 +400,18 @@ function App() {
                       <button onClick={handleAspectRatioConversion} disabled={isLoading}>
                         Convert Ratio{convertToWebP ? ' → WebP' : ''}
                       </button>
+                      <button
+                        onClick={async () => {
+                          const selected = await open({ multiple: false, filters: [{ name: 'Images', extensions: ['jpg','jpeg','png','webp','avif'] }] });
+                          if (selected) {
+                            setCropInitialPath(selected);
+                            setShowCropModal(true);
+                          }
+                        }}
+                        className="secondary"
+                      >
+                        Open Crop Preview
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -535,6 +550,15 @@ function App() {
 
       {/* Modal */}
       {showModal && <ImageOverlayModal onClose={() => setShowModal(false)} onOverlay={handleOverlay} />}
+      {showCropModal && (
+        <ImageCropModal
+          initialImagePath={cropInitialPath}
+          onClose={() => {
+            setShowCropModal(false);
+            setCropInitialPath(null);
+          }}
+        />
+      )}
 
       {/* Output Sections */}
       {fileList && (

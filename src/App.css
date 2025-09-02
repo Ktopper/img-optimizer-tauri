@@ -362,6 +362,15 @@ textarea:focus {
   box-shadow: var(--shadow-lg);
 }
 
+.crop-area {
+  pointer-events: auto;
+}
+
+.modal img {
+  display: block;
+  max-width: 100%;
+}
+
 .modal h2 {
   color: var(--text-primary);
   margin: 0 0 1.5rem 0;
